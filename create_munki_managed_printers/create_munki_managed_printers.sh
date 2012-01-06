@@ -40,7 +40,7 @@ catalog=$2
 
 # Loop through the input printer list file, this assumes output as given by smbclient -L for a given Windows print server, stripped of any leading tabs:
 #	smbclient -U USER%PASSWORD -L //PRINT_SERVER/ | tr -d "\t" | sed "s/\ \{2,\}/\ /g"
-smbclient -U user%pass -L //mifhvmps01/ | tr -d "\t" | sed "s/\ \{2,\}/\ /g" | while read line; do
+smbclient -U user%pass -L //PRINTSERVER/ | tr -d "\t" | sed "s/\ \{2,\}/\ /g" | while read line; do
 
 	# Initialize $requires which is set if a print queue requires a non-standard PPD and initialize $printer, $location and $description
 	#	by parsing the input line. The latter three are used when lpadmin runs from the PKG's postflight.
