@@ -9,7 +9,7 @@
 printername="PRINTER_NAME"
 location="LOCATION"
 gui_display_name="DESCRIPTION"
-address="lpd://mifhvmps01.corp.local/PRINTER_NAME"
+address="lpd://YOURPRINTSERVER/PRINTER_NAME"
 driver_ppd="/Library/Printers/PPDs/Contents/Resources/PPD_FILE"
 # Populate these options if you want to set specific options for the printer. E.g. duplexing installed, etc.
 option_1=""

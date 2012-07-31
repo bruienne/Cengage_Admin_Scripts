@@ -28,20 +28,33 @@
 ############################################################################################
 
 # Check for version and catalog arguments, error out if only one or none given.
-if [[ $1 == "" || $2 == ""  ]]; then
-	echo "Usage: <scriptname> <version> (e.g. 1.0) <catalog name> (e.g. printers)"
+if [[ $1 == "" || $2 == "" ]]; then
+	echo "Usage: <scriptname> | [version] (e.g. 1.0 - required) | [catalog name] (e.g. printers - required) | [server name] (required) | [username] (required) | [regex filter for queue name] (optional)"
 	exit 1
 fi
 
 # Set the version passed from the command line.
 version=$1
-# Set the catalog we are adding print queue installers to from the command line.
+
+# Assign required and optional variables passed from the command line.
 catalog=$2
+server=$3
+user=$4
+pass=$5
+filter=$6
 
 # Loop through the input printer list file, this assumes output as given by smbclient -L for a given Windows print server, stripped of any leading tabs:
 #	smbclient -U USER%PASSWORD -L //PRINT_SERVER/ | tr -d "\t" | sed "s/\ \{2,\}/\ /g"
-smbclient -U user%pass -L //PRINTSERVER/ | tr -d "\t" | sed "s/\ \{2,\}/\ /g" | while read line; do
 
+# Configure the smbclient command for use with or without the optional printer name filter.
+if [ ! $filter ];then
+	SMBCLIENT='smbclient -U $user%$pass -L //$server/ | tr -d "\t" | sed "s/\ \{2,\}/\ /g"'
+else
+	SMBCLIENT='smbclient -U $user%$pass -L //$server/ | tr -d "\t" | sed "s/\ \{2,\}/\ /g" | grep "$filter"'
+fi
+
+# Run the command, this is the main routine.
+eval ${SMBCLIENT} | while read line; do
 	# Initialize $requires which is set if a print queue requires a non-standard PPD and initialize $printer, $location and $description
 	#	by parsing the input line. The latter three are used when lpadmin runs from the PKG's postflight.
 	requires=""
@@ -136,6 +149,7 @@ smbclient -U user%pass -L //PRINTSERVER/ | tr -d "\t" | sed "s/\ \{2,\}/\ /g" | 
 			*HPLJ4100*) sed -e "s#PRINTER_NAME#${printer}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#LOCATION#${location}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#DESCRIPTION#${description}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#PPD_FILE#HP LaserJet 4100 Series.gz#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH;;
 			*HPLJ4*) sed -e "s#PRINTER_NAME#${printer}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#LOCATION#${location}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#DESCRIPTION#${description}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#PPD_FILE#HP LaserJet 4MP.gz#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH;;
 			*HPLJ5000*) sed -e "s#PRINTER_NAME#${printer}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#LOCATION#${location}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#DESCRIPTION#${description}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#PPD_FILE#HP LaserJet 5000 Series.gz#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH;;
+			*HPLJ5200*) sed -e "s#PRINTER_NAME#${printer}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#LOCATION#${location}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#DESCRIPTION#${description}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#PPD_FILE#HP LaserJet 5200.gz#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH;;
 			*HP*5SI*) sed -e "s#PRINTER_NAME#${printer}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#LOCATION#${location}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#DESCRIPTION#${description}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#PPD_FILE#HP LaserJet 5Si.gz#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH;;
 			*HPLJ8000*) sed -e "s#PRINTER_NAME#${printer}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#LOCATION#${location}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#DESCRIPTION#${description}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#PPD_FILE#HP LaserJet 8000 Series.gz#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH;;
 			*HPLJ8100*) sed -e "s#PRINTER_NAME#${printer}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#LOCATION#${location}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#DESCRIPTION#${description}#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH -e "s#PPD_FILE#HP LaserJet 8100 Series.gz#g" < $POSTFLIGHT_TEMPLATE > $POSTFLIGHT_PATH;;
@@ -156,7 +170,6 @@ smbclient -U user%pass -L //PRINTSERVER/ | tr -d "\t" | sed "s/\ \{2,\}/\ /g" | 
 			#	Munki's "uninstall_script" uninstall_method vs. directly entering the one-line uninstall script as listed in the original Munki wiki article to allow for
 			#	proper cleanup of the printer installer receipt which was not being done otherwise, leading to an inconsistent installed state after uninstallation.
 			/usr/local/munki/makepkginfo $BASE_PATH/*.dmg > $PKGINFO_PATH
-#			echo ${PKGINFO_PATH}
 			/usr/libexec/PlistBuddy -c "Set :catalogs:0 $catalog" ${PKGINFO_PATH}
 			/usr/libexec/PlistBuddy -c "Set :uninstall_method uninstall_script" $PKGINFO_PATH
 			/usr/libexec/PlistBuddy -c "Set :installer_item_location printers/${DMG_FILE}" $PKGINFO_PATH
