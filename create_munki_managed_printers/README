@@ -1,0 +1,34 @@
+This tool creates Munki-ready printer pkg installers and their pkginfo files by querying a Windows 2003/2008 print server.
+
+Requirements:
+
+* Munkitools - https://code.google.com/p/munki/downloads/detail?name=munkitools-0.8.4.1770.0.dmg
+* The Luggage - https://github.com/unixorn/luggage
+
+To successfully use this tool the user must provide the following CLI options (in the below order):
+
+* A version string for their printer installer(s) (e.g. 1.0, 2.5, etc.)
+* A catalog the printer installer pkg(s) will belong to. This can be a new catalog or an existing one.
+* A Windows print server name, either hostname or FQDN (e.g. sampleps01, sampleps01.company.com)
+* A privileged username, short username or UPN (e.g. jdoe or jdoe@domain.com)
+* The privileged user's password
+* Optionally a regex string may be supplied to filter certain print queues, e.g. *HP*, *Xerox*, *8100*
+
+
+Examples:
+
+Connect to myprintserver.company.com as user "printuser" using a password and create installer pkg(s) for HP
+printers only. Mark the created printer installer pkg(s) as version "1.0" and add them to the "printers" catalog.
+
+./create_munki_managed_printers 1.0 printers myprintserver.company.com printuser pr1nt4fun *HP*
+
+Connect to myprintserver as user "guest" without a password and create installer pkg(s) for all
+available printers. Mark the created printer installer pkg(s) as version "1.2" and add them to the "printers" catalog.
+
+./create_munki_managed_printers 1.2 printers myprintserver guest ""
+
+
+Caveats:
+
+This is a pretty ugly shell script, but it works for my purposes. The option parsing is inflexible
+and should probably be retooled. I welcome anyone to take a stab at that, I simply haven't had the time.
