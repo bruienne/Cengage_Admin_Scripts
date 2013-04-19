@@ -17,15 +17,18 @@ To successfully use this tool the user must provide the following CLI options (i
 
 Examples:
 
-Connect to myprintserver.company.com as user "printuser" using a password and create installer pkg(s) for HP printers only. Mark the created printer installer pkg(s) as version "1.0" and add them to the "printers" catalog.
+Connect to myprintserver.company.com as user "printuser" using a password and create installer pkg(s) for HP printers only.
+Mark the created printer installer pkg(s) as version "1.0" and add them to the "printers" catalog.
 
 ./create_munki_managed_printers 1.0 printers myprintserver.company.com printuser pr1nt4fun *HP*
 
-Connect to myprintserver as user "guest" without a password and create installer pkg(s) for all available printers. Mark the created printer installer pkg(s) as version "1.2" and add them to the "printers" catalog.
+Connect to myprintserver as user "guest" without a password and create installer pkg(s) for all available printers.
+Mark the created printer installer pkg(s) as version "1.2" and add them to the "printers" catalog.
 
 ./create_munki_managed_printers 1.2 printers myprintserver guest ""
 
 
 Caveats:
 
-This is a pretty ugly shell script, but it works for my purposes. The option parsing is inflexible and should probably be retooled. I welcome anyone to take a stab at that, I simply haven't had the time.
+This is a pretty ugly shell script, but it works for my purposes. The option parsing is inflexible and should probably
+be retooled. I welcome anyone to take a stab at that, I simply haven't had the time.
