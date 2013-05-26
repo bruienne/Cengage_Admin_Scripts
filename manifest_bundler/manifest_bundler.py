@@ -27,11 +27,15 @@ else:
 parser.add_option("-o", "--process-optional",
                     action="store_true", dest="optional", default=False,
                     help="Also process the optional installs in the manifest")
-# TODO: process nested manifests
+# Process nested manifests
 parser.add_option("-n", "--process-nested",
                     action="store_true", dest="nested", default=False,
                     help="Process nested manifests as well")
-                
+
+parser.add_option("-u", "--upload",
+                    action="store_true", dest="upload", default=False,
+                    help="Upload to Munkiserver")
+
 (options, args) = parser.parse_args()
 
 # Setup variables for various paths and files using user options:
@@ -50,6 +54,7 @@ pkgsinfodir = os.path.join(basedir, "pkgsinfo")
 pkgsdir = os.path.join(basedir, "pkgs")
 processoptional = options.optional
 processnested = options.nested
+upload = options.upload
 managedinstalls = ""
 
 if processoptional:
@@ -57,6 +62,22 @@ if processoptional:
 
 if processnested:
     print "Processing nested manifests...\n"
+
+def uploadToMunkiserver(pkginfo, pkg):
+    """docstring for uploadToMunkiserver"""
+    
+    s = requests.Session()
+    # s.params = {'autoconfig':'true'}
+
+    url = 'http://localhost:3000/default/packages/batch'
+
+    files = {'package_file': open(pkg, 'rb'), 'pkginfo_file': open(pkginfo, 'rb')}
+
+    result = s.post(url, files=files)
+    # print result.text
+    print result.status_code
+        
+    # pass
 
 def processManifest(manifestpath, nested=False):
     """docstring for processManifest"""
@@ -111,8 +132,8 @@ def findInstallerItem(thispkginfo,thispath):
     else:
         # This isn't a file so print thispkginfo and bail
         print "Something else: " + thispkginfo
-    return pkg
-    return pkginfo
+    
+    return pkg, pkginfo
     
 def getHighestVersion(thisapp):
 
@@ -171,8 +192,12 @@ def bundleItems(pkgsinfodir, thismanagedinstalls):
 def main():
     
     # Run it
-    itemstobundle=processManifest(manifestpath)
-    bundleItems(pkgsinfodir, itemstobundle)
+    itemstobundle = processManifest(manifestpath)
+    pkg, pkginfo = bundleItems(pkgsinfodir, itemstobundle)
+    if upload:
+        print 'Attempting to upload files...'
+        uploadToMunkiserver(pkg, pkginfo)
+    
     
 if __name__ == '__main__':
     main()
