@@ -31,6 +31,7 @@ parser.add_option("-u", "--upload",
 
 processoptional = options.optional
 processnested = options.nested
+url = options.url
 
 try:
     sys.argv[1]
@@ -41,12 +42,20 @@ else:
         sys.exit("Supplied option \"" + sys.argv[1] + "\" is not a file.")
     manifestpath = sys.argv[1]
 
-    if processoptional and processnested:
+    if processoptional and processnested and url:
+        print "Processing manifest including nested manifests and optional software from " + manifestpath + " and uploading to " + url + "\n"
+    elif processoptional and processnested:
         print "Processing manifest including nested manifests and optional software from " + manifestpath + "\n"
+    elif processoptional and url:
+        print "Processing manifest including optional software from " + manifestpath + " and uploading to " + url + "\n"
+    elif processnested and url:
+        print "Processing manifest including nested manifests from " + manifestpath + " and uploading to " + url + "\n"
     elif processoptional:
         print "Processing manifest including optional software from " + manifestpath + "\n"
     elif processnested:
         print "Processing manifest including nested manifests from " + manifestpath + "\n"
+    elif url:
+        print "Processing manifest from " + manifestpath + " and uploading to " + url + "\n"
     else:
         print "Processing manifest from " + manifestpath + "\n"
 
@@ -64,10 +73,9 @@ basedir = os.path.dirname(manifestpath).split("manifests")[0]
 manifestdir = os.path.dirname(manifestpath)
 pkgsinfodir = os.path.join(basedir, "pkgsinfo")
 pkgsdir = os.path.join(basedir, "pkgs")
-url = options.url
 managedinstalls = ""
 
-def uploadToMunkiserver(pkginfo, pkg):
+def uploadToMunkiserver(pkg, pkginfo):
     """docstring for uploadToMunkiserver"""
     
     s = requests.Session()
@@ -77,11 +85,11 @@ def uploadToMunkiserver(pkginfo, pkg):
 
     files = {'package_file': open(pkg, 'rb'), 'pkginfo_file': open(pkginfo, 'rb')}
     
-    print "Uploading " + os.path.basename(pkginfo)
+    print "Uploading " + os.path.basename(pkginfo) + " to " + url
     
     result = s.post(url, files=files)
     # print result.text
-    print result.status_code
+    # print result.status_code
         
     # pass
 
