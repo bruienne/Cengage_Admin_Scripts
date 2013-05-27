@@ -152,7 +152,6 @@ def findInstallerItem(thispkginfo,thispath):
         print "Not a file or not found: " + thispkginfo
 
     if url:
-        print 'Attempting to upload ' + pkginfo + ' and ' + pkg
         uploadToMunkiserver(pkg, pkginfo)
     
     # return pkg, pkginfo
